@@ -3,8 +3,8 @@ class DotnetAT6 < Formula
   homepage "https://dotnet.microsoft.com/"
   # Source-build tag announced at https://github.com/dotnet/source-build/discussions
   url "https://github.com/dotnet/installer.git",
-      tag:      "v6.0.125",
-      revision: "e898a826c2b7f66602c8962134ef165fb9e6d44b"
+      tag:      "v6.0.132",
+      revision: "b1806f3a38b61b34fb53e175efce615f223718e9"
   license "MIT"
 
   bottle do
@@ -72,9 +72,18 @@ class DotnetAT6 < Formula
 
     cd "sources" do
       # Use our libunwind rather than the bundled one.
-      inreplace "src/runtime/eng/SourceBuild.props",
-                "/p:BuildDebPackage=false",
-                "\\0 --cmakeargs -DCLR_CMAKE_USE_SYSTEM_LIBUNWIND=ON"
+      if !OS.mac? || MacOS.version != :ventura
+        inreplace "src/runtime/eng/SourceBuild.props",
+                  "/p:BuildDebPackage=false",
+                  "\\0 --cmakeargs -DCLR_CMAKE_USE_SYSTEM_LIBUNWIND=ON"
+
+        # Fix missing macOS conditional for system unwind searching.
+        # Remove if following fix is backported to .NET 6.0.1xx
+        # Ref: https://github.com/dotnet/runtime/commit/97c9a11e3e6ca68adf0c60155fa82ab3aae953a5
+        inreplace "src/runtime/src/native/corehost/apphost/static/CMakeLists.txt",
+                  "if(CLR_CMAKE_USE_SYSTEM_LIBUNWIND)",
+                  "if(CLR_CMAKE_USE_SYSTEM_LIBUNWIND AND NOT CLR_CMAKE_TARGET_OSX)"
+      end
 
       # Fix Clang 15 error: definition of builtin function '__cpuid'.
       # Remove if following fix is backported to .NET 6.0.1xx
@@ -82,13 +91,6 @@ class DotnetAT6 < Formula
       inreplace "src/runtime/src/coreclr/vm/amd64/unixstubs.cpp",
                 /^ *void (__cpuid|__cpuidex)\([^}]*}$/,
                 "#if !__has_builtin(\\1)\n\\0\n#endif"
-
-      # Fix missing macOS conditional for system unwind searching.
-      # Remove if following fix is backported to .NET 6.0.1xx
-      # Ref: https://github.com/dotnet/runtime/commit/97c9a11e3e6ca68adf0c60155fa82ab3aae953a5
-      inreplace "src/runtime/src/native/corehost/apphost/static/CMakeLists.txt",
-                "if(CLR_CMAKE_USE_SYSTEM_LIBUNWIND)",
-                "if(CLR_CMAKE_USE_SYSTEM_LIBUNWIND AND NOT CLR_CMAKE_TARGET_OSX)"
 
       # Work around arcade build failure with BSD `sed` due to non-compatible `-i`.
       # Remove if following fix is backported to .NET 6.0.1xx

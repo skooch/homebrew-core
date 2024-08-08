@@ -1,8 +1,11 @@
 class Polyml < Formula
   desc "Standard ML implementation"
   homepage "https://www.polyml.org/"
-  url "https://github.com/polyml/polyml/archive/refs/tags/v5.9.tar.gz"
-  sha256 "5aa452a49f2ac0278668772af4ea0b9bf30c93457e60ff7f264c5aec2023c83e"
+  # url "https://github.com/polyml/polyml/archive/refs/tags/v5.9.tar.gz"
+  # sha256 "5aa452a49f2ac0278668772af4ea0b9bf30c93457e60ff7f264c5aec2023c83e"
+  url "https://github.com/polyml/polyml.git",
+      revision: "a71e81c152470d53bdcaff767fb7305d6908a9a1"
+  version "5.9"
   license "LGPL-2.1-or-later"
   head "https://github.com/polyml/polyml.git", branch: "master"
 
@@ -17,15 +20,32 @@ class Polyml < Formula
   end
 
   # Fix -flat_namespace being used on Big Sur and later.
-  patch do
-    url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
-    sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+  # patch do
+  #   url "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-big_sur.diff"
+  #   sha256 "35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c"
+  # end
+
+  on_macos do
+    on_arm do
+      depends_on "gcc"
+      fails_with :clang
+    end
   end
 
   def install
-    system "./configure", "--disable-dependency-tracking", "--disable-debug",
-                          "--prefix=#{prefix}"
-    system "make"
+    # Use ld_classic to work around 'ld: LINKEDIT overlap of start of LINKEDIT and symbol table'
+    # Issue ref: https://github.com/polyml/polyml/issues/194
+    ENV.append "LDFLAGS", "-Wl,-ld_classic" if DevelopmentTools.clang_build_version >= 1500
+
+    make_args = []
+    if Hardware::CPU.arm?
+      make_args << "BOOTSTRAP_OPTIONS=--maxheap=500 --gcthreads=1"
+      ENV.deparallelize
+      ENV.O0
+    end
+
+    system "./configure", "--disable-silent-rules", *std_configure_args
+    system "make", *make_args
     system "make", "install"
   end
 

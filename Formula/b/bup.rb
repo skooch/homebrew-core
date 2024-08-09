@@ -19,6 +19,7 @@ class Bup < Formula
   depends_on "pandoc" => :build
   depends_on "pkg-config" => :build
   depends_on "python@3.12"
+  depends_on "readline"
 
   def python3
     which("python3.12")
@@ -26,6 +27,7 @@ class Bup < Formula
 
   def install
     ENV["BUP_PYTHON_CONFIG"] = "#{python3}-config"
+
     system "make", "PREFIX=#{prefix}", "install"
   end
 

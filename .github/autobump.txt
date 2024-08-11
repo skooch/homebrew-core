@@ -565,6 +565,7 @@ dbus
 dcd
 dcm2niix
 ddcutil
+ddd
 ddns-go
 ddrescue
 deark

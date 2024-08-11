@@ -1,9 +1,9 @@
 class Ddd < Formula
   desc "Graphical front-end for command-line debuggers"
   homepage "https://www.gnu.org/software/ddd/"
-  url "https://ftp.gnu.org/gnu/ddd/ddd-3.4.0.tar.gz"
-  mirror "https://ftpmirror.gnu.org/ddd/ddd-3.4.0.tar.gz"
-  sha256 "5d4cbc8a0bb0458543866d679308c53a3ef066e402fe5a1918e19698a3d3580f"
+  url "https://ftp.gnu.org/gnu/ddd/ddd-3.4.1.tar.gz"
+  mirror "https://ftpmirror.gnu.org/ddd/ddd-3.4.1.tar.gz"
+  sha256 "844cf83f703fa6e2949c287f84a6665e947dbfa69b152a96e5c5171255fad9ce"
   license all_of: ["GPL-3.0-only", "GFDL-1.1-or-later"]
 
   bottle do
@@ -28,10 +28,6 @@ class Ddd < Formula
   depends_on "openmotif"
 
   def install
-    # ioctl is not found without this flag
-    # Upstream issue ref: https://savannah.gnu.org/bugs/index.php?64188
-    ENV.append_to_cflags "-DHAVE_SYS_IOCTL_H" if OS.mac?
-
     system "./configure", "--disable-debug",
                           "--disable-dependency-tracking",
                           "--enable-builtin-app-defaults",

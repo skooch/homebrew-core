@@ -1830,6 +1830,7 @@ numbat
 numcpp
 numpy
 nushell
+nuspell
 nut
 nvc
 nvchecker
